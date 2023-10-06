@@ -1,8 +1,14 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/use-toast';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useRouter } from 'next/navigation';
 
 export default function FilesPage() {
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+
   // TODO: request documents from supabase
   const documents: any[] = [];
 
@@ -17,7 +23,23 @@ export default function FilesPage() {
             const selectedFile = e.target.files?.[0];
 
             if (selectedFile) {
-              // TODO: Upload the file to supabase storage
+              const { error } = await supabase.storage
+                .from('files')
+                .upload(
+                  `${crypto.randomUUID()}/${selectedFile.name}`,
+                  selectedFile
+                );
+
+              if (error) {
+                toast({
+                  variant: 'destructive',
+                  description:
+                    'There was an error uploading the file. Please try again.',
+                });
+                return;
+              }
+
+              router.push('/chat');
             }
           }}
         />
