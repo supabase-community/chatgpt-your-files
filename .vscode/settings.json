@@ -1,0 +1,9 @@
+{
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.unstable": false,
+  "deno.enablePaths": [
+    "supabase"
+  ],
+  "deno.importMap": "./supabase/functions/import_map.json"
+}
