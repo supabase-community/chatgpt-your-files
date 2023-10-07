@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { env, pipeline } from '@xenova/transformers';
+import { Database } from '../_lib/database.ts';
 
 // Configuration for Deno runtime
 env.useBrowserCache = false;
@@ -38,7 +39,7 @@ Deno.serve(async (req) => {
     );
   }
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: {
         authorization,

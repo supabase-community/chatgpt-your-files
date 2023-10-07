@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Database } from '../_lib/database.ts';
 import { processMarkdown } from '../_lib/markdown-parser.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -29,7 +30,7 @@ Deno.serve(async (req) => {
     );
   }
 
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: {
         authorization,
