@@ -12,6 +12,7 @@
     "@supabase/auth-helpers-nextjs": "latest",
     "@supabase/supabase-js": "latest",
     "@tanstack/react-query": "^4.35.7",
+    "@xenova/transformers": "^2.6.2",
     "autoprefixer": "10.4.15",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
