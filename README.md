@@ -99,6 +99,12 @@ Refer to this step if you want to learn about the additions added on top of `cre
    npm i -D supabase@1.102.0
    ```
 
+1. Initialize Supabase project.
+
+   ```bash
+   npx supabase init
+   ```
+
 1. (Optional) Setup VSCode environment.
 
    ```bash
@@ -217,16 +223,19 @@ First install NPM dependencies.
 npm i
 ```
 
-#### Start local Supabase stack
+#### Setup Supabase stack
 
-1. Next initialize and start a local version of Supabase _(runs in Docker)_.
+When developing a project in Supabase, you can choose to develop locally or directly on the cloud.
 
-   ```bash
-   npx supabase init
+##### Local
+
+1. Start a local version of Supabase _(runs in Docker)_.
+
+   ```shell
    npx supabase start
    ```
 
-1. Store Supabase URL & public anon key in `.env.local` for Next.js.
+1. Store the Supabase URL & public anon key in `.env.local` for Next.js.
 
    ```bash
    npx supabase status -o env \
@@ -234,6 +243,33 @@ npm i
      --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY |
        grep NEXT_PUBLIC > .env.local
    ```
+
+##### Cloud
+
+1. Create a Supabase project at https://database.new, or via the CLI:
+
+   ```shell
+   npx supabase projects create -i "ChatGPT Your Files"
+   ```
+
+   Your Org ID can be found in the URL after [selecting an org](https://supabase.com/dashboard/org/_/general).
+
+1. Link your CLI to the project.
+
+   ```shell
+   npx supabase link --project-id=<project-id>
+   ```
+
+   You can get the project ID from the [general settings page](https://supabase.com/dashboard/project/_/settings/general).
+
+1. Store Supabase URL & public anon key in `.env.local` for Next.js.
+
+   ```shell
+   NEXT_PUBLIC_SUPABASE_URL=<api-url>
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+   ```
+
+   You can get the project API URL and anonymous key from the [API settings page](https://supabase.com/dashboard/project/_/settings/api).
 
 #### Build a SQL migration
 
@@ -334,6 +370,12 @@ We can improve our previous RLS policy to require a UUID in the uploaded file pa
 
     ```bash
     npx supabase migration up
+    ```
+
+    or if you are developing directly on the cloud, push your migrations up:
+
+    ```
+    npx supabase db push
     ```
 
 ---
@@ -474,7 +516,7 @@ Let's create a `documents` and `document_sections` table to store our processed 
     );
     ```
 
-1.  Add `supabase_url` secret to `./supabase/seed.sql`. We will use this to query our Edge Functions within our local environment. In production, set this to your Supabase project's API URL.
+1.  If developing locally, add `supabase_url` secret to `./supabase/seed.sql`. We will use this to query our Edge Functions within our local environment.
 
     ```sql
     select vault.create_secret(
@@ -482,6 +524,17 @@ Let's create a `documents` and `document_sections` table to store our processed 
       'supabase_url'
     );
     ```
+
+    If you are developing directly on the cloud, open up the [SQL Editor](https://supabase.com/dashboard/project/_/sql/new) and set this to your Supabase project's API URL:
+
+    ```sql
+    select vault.create_secret(
+      '<api-url>',
+      'supabase_url'
+    );
+    ```
+
+    You can get the project API URL from the [API settings page](https://supabase.com/dashboard/project/_/settings/api).
 
 1.  Create a function to retrieve the URL.
 
@@ -542,6 +595,12 @@ Let's create a `documents` and `document_sections` table to store our processed 
 
     ```bash
     npx supabase migration up
+    ```
+
+    or if you are developing directly on the cloud, push your migrations up:
+
+    ```
+    npx supabase db push
     ```
 
 #### Edge function for `process`
@@ -725,13 +784,19 @@ Let's create a `documents` and `document_sections` table to store our processed 
     });
     ```
 
-1.  In a new terminal we'll serve the edge functions locally.
+1.  If developing locally, open a new terminal and serve the edge functions.
 
     ```bash
     npx supabase functions serve
     ```
 
     _Note: Local Edge Functions are automatically served as part of `npx supabase start`, but this command allows us to also monitor their logs._
+
+    If you're developing directly on the cloud, deploy your edge function:
+
+    ```shell
+    npx supabase functions deploy
+    ```
 
 #### Display documents on the frontend
 
@@ -867,9 +932,15 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
     npx supabase migration up
     ```
 
+    or if you are developing directly on the cloud, push your migrations up:
+
+    ```
+    npx supabase db push
+    ```
+
 #### Create Edge Function for `embed`
 
-1.  Create edge function file
+1.  Create edge function file.
 
     ```bash
     npx supabase functions new embed
@@ -1008,6 +1079,12 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
       status: 204,
       headers: { 'Content-Type': 'application/json' },
     });
+    ```
+
+1.  If you're developing directly on the cloud, deploy your edge function:
+
+    ```shell
+    npx supabase functions deploy
     ```
 
 ---
@@ -1196,6 +1273,12 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     npx supabase migration up
     ```
 
+    or if you are developing directly on the cloud, push your migrations up:
+
+    ```
+    npx supabase db push
+    ```
+
 #### Create `chat` Edge Function
 
 1.  First generate an API key from [OpenAI](https://platform.openai.com/account/api-keys) and save it in `supabase/functions/.env`.
@@ -1371,6 +1454,18 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
     _Note: we must also return CORS headers here (or anywhere else we send a response)._
 
+1.  If you're developing directly on the cloud, set your `OPENAI_API_KEY` secret in the cloud:
+
+    ```shell
+    npx supabase secrets set OPENAI_API_KEY=<openai-key>
+    ```
+
+    Then deploy your edge function:
+
+    ```shell
+    npx supabase functions deploy
+    ```
+
 #### Try it!
 
 Let's try it out! Here are some questions you could try asking:
@@ -1470,9 +1565,13 @@ Jump to a previous step:
 
 ## 🚀 Going to prod
 
-Up until now we've been developing the app locally. Use these instructions to deploy your app to a production Supabase project.
+If you've been developing the app locally, follow these instructions to deploy your app to a production Supabase project.
 
-1. Create a [new Supabase project](https://supabase.com/dashboard/new/_).
+1. Create a Supabase project at https://database.new, or via the CLI:
+
+   ```shell
+   npx supabase projects create -i "ChatGPT Your Files"
+   ```
 
 1. Link the CLI with your Supabase project.
 
