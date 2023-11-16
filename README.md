@@ -1263,7 +1263,7 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
     _Note: Our embeddings are normalized, so inner product and cosine similarity are equivalent in terms of output. Note though that pgvector's `<=>` operator is cosine distance, not cosine similarity, so `inner product == 1 - cosine distance`._
 
-    We also filter by a `match_threshold` in order to return only the most relevant results (1 = most similar, 0 = least similar).
+    We also filter by a `match_threshold` in order to return only the most relevant results (1 = most similar, -1 = most dissimilar).
 
     _Note: `match_threshold` is negated because `<#>` is a negative inner product. See the pgvector docs for more details on why `<#>` is negative._
 
