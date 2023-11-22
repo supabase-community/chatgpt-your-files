@@ -13,6 +13,12 @@ Create a production-ready MVP for securely chatting with your documents.
 - **REST API:** Expose a flexible REST API that we’ll consume to build the interactive front-end.
 - **Row-level Security:** Secure all of your user data user data with production-ready row-level security.
 
+## 🎥 YouTube video
+
+This entire workshop was recorded as a YouTube video. Feel free to watch it here:
+
+https://www.youtube.com/watch?v=ibzlEQmgPPY
+
 ## 📄 Workshop Instructions
 
 Thanks for joining! Let's dive in.
@@ -37,12 +43,6 @@ Thanks for joining! Let's dive in.
    ```
 
 1. **Step-by-step guide:** These steps are written out line-by-line. Feel free to follow along using the [steps below](#step-by-step).
-
-### 🚶 Need to step out?
-
-If you can't make the full workshop, no worries! We'll be putting out a YouTube video later that goes over the same content.
-
-If you'd like to get notified when the video is available, feel free to drop your name and email on [this form](https://airtable.com/appGOhbhNzJCGQoo6/shrHkzwU256fIBDIC) and we'll send you the link!
 
 ## 🧱 Pre-req’s
 
