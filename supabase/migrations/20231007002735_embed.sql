@@ -54,4 +54,4 @@ create trigger embed_document_sections
   after insert on document_sections
   referencing new table as inserted
   for each statement
-  execute procedure private.embed(content, embedding, 10);
+  execute procedure private.embed(content, embedding, 5);
