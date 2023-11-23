@@ -917,7 +917,7 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
       after insert on document_sections
       referencing new table as inserted
       for each statement
-      execute procedure private.embed(content, embedding, 10);
+      execute procedure private.embed(content, embedding, 5); -- changed this to 5 to help with reports of CPU limits reached
     ```
 
     Note we pass 3 arguments to `embed()`:
