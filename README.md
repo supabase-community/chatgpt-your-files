@@ -257,7 +257,7 @@ When developing a project in Supabase, you can choose to develop locally or dire
 1. Link your CLI to the project.
 
    ```shell
-   npx supabase link --project-id=<project-id>
+   npx supabase link --project-ref=<project-id>
    ```
 
    You can get the project ID from the [general settings page](https://supabase.com/dashboard/project/_/settings/general).
