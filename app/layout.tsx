@@ -14,7 +14,10 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: PropsWithChildren) {
-  const supabase = createServerComponentClient({ cookies });
+  // Keep cookies in the JS execution context for Next.js build
+  const cookieStore = cookies();
+
+  const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
   const {
     data: { user },
