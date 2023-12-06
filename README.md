@@ -291,7 +291,8 @@ When developing a project in Supabase, you can choose to develop locally or dire
 
     ```sql
     insert into storage.buckets (id, name)
-    values ('files', 'files');
+    values ('files', 'files')
+    on conflict do nothing;
     ```
 
 1.  Add RLS policies to restrict access to files.
