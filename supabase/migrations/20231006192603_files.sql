@@ -1,7 +1,8 @@
 create schema private;
 
 insert into storage.buckets (id, name)
-values ('files', 'files');
+values ('files', 'files')
+on conflict do nothing;
 
 create or replace function private.uuid_or_null(str text)
 returns uuid
