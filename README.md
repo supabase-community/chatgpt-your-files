@@ -883,13 +883,13 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
     declare
       content_column text = TG_ARGV[0];
       embedding_column text = TG_ARGV[1];
-      batch_size int = TG_ARGV[2];
+      batch_size int = case when array_length(TG_ARGV, 1) >= 3 then TG_ARGV[2]::int else 5 end;
+      timeout_milliseconds int = case when array_length(TG_ARGV, 1) >= 4 then TG_ARGV[3]::int else 5 * 60 * 1000 end;
       batch_count int = ceiling((select count(*) from inserted) / batch_size::float);
-      result int;
     begin
-
+      -- Loop through each batch and invoke an edge function to handle the embedding generation
       for i in 0 .. (batch_count-1) loop
-      select
+      perform
         net.http_post(
           url := supabase_url() || '/functions/v1/embed',
           headers := jsonb_build_object(
@@ -901,9 +901,9 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
             'table', TG_TABLE_NAME,
             'contentColumn', content_column,
             'embeddingColumn', embedding_column
-          )
-        )
-      into result;
+          ),
+          timeout_milliseconds := timeout_milliseconds
+        );
       end loop;
 
       return null;
@@ -918,14 +918,28 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
       after insert on document_sections
       referencing new table as inserted
       for each statement
-      execute procedure private.embed(content, embedding, 5); -- changed this to 5 to help with reports of CPU limits reached
+      execute procedure private.embed(content, embedding);
     ```
 
-    Note we pass 3 arguments to `embed()`:
+    Note we pass 2 trigger arguments to `embed()`:
 
     - The first specifies which column contains the text content to embed.
     - The second specifies the destination column to save the embedding into.
-    - The third specifies the number of records to include in each edge function call.
+
+    There are also 2 more optional trigger arguments available:
+
+    ```sql
+    create trigger embed_document_sections
+      after insert on document_sections
+      referencing new table as inserted
+      for each statement
+      execute procedure private.embed(content, embedding, 5, 300000);
+    ```
+
+    - The third argument specifies the batch size (number of records to include in each edge function call). Default is 5.
+    - The fourth argument specifies the HTTP connection timeout for each edge function call. Default is 300000 ms (5 minutes).
+
+    Feel free to adjust these according to your needs. A larger batch size will require a longer timeout per request, since each invocation will have more embeddings to generate. A smaller batch size can use a lower timeout.
 
 1.  Apply the migration to our local database.
 
