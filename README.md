@@ -982,6 +982,13 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
     );
     ```
 
+    _Note: Transformers.js requires an ONNX model. This means
+    that the model you specify in the pipeline must have an `.onnx`
+    artefact otherwise you will face this helpful error message
+    `Could not locate file [...] xxx.onnx`. We go into more details
+    in [this other tutorial](https://www.youtube.com/watch?v=QdDoFfkVkcw&t=3825s). To convert your models to ONNX, see
+    the documentation [here](https://huggingface.co/docs/transformers.js/en/custom_usage#convert-your-models-to-onnx)._
+
 1.  Just like before, grab the Supabase variables and check for their existence _(type narrowing)_.
 
     ```tsx
