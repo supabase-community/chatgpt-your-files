@@ -946,6 +946,17 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 
     Feel free to adjust these according to your needs. A larger batch size will require a longer timeout per request, since each invocation will have more embeddings to generate. A smaller batch size can use a lower timeout.
 
+    <details>
+    <summary><i>Note: Lifecycle of triggered edge functions</i></summary>
+    If the triggered edge function fails, you will end up with
+    document sections missing embeddings. In the case of this
+    tutorial, we can `supabase db reset`. In a more production
+    setting, some potential options (although beyond the scope of this tutorial) are:
+
+      * Add another function that can be triggered manually which checks for `document_sections` with missing embeddings and invokes the `/embed` edge function for them.
+      * Create a [scheduled function](https://supabase.com/docs/guides/functions/schedule-functions) that periodically checks for `document_sections` with missing embeddings and re-generates them. We would likely need to add a locking mechanism (ie. via another column) to prevent the scheduled function from conflicting with the normal `embed` trigger.
+    </details>
+
 1.  Apply the migration to our local database.
 
     ```bash
