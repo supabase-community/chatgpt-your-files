@@ -1296,6 +1296,18 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
 #### Create `chat` Edge Function
 
+_Note: In the following steps, we show how to integrate with the
+ models provided by OpenAI. There are alternatives though.
+Whichever provider you choose, you can reuse the provided code
+as long as the provider offers an OpenAI-compatible API.
+Such providers are [together.ai](https://docs.together.ai/docs/openai-api-compatibility#nodejs), 
+[fireworks.ai](https://readme.fireworks.ai/docs/openai-compatibility), 
+[endpoints.anyscale.com](https://docs.endpoints.anyscale.com/examples/work-with-openai/) 
+or a local model served with [Ollama](https://github.com/ollama/ollama/blob/main/docs/openai.md#openai-javascript-library). 
+You can find more providers [here](https://sdk.vercel.ai/docs/guides).
+We will add the code for Ollama using Notes, 
+and we leave the rest as an exercise for the reader._
+
 1.  First generate an API key from [OpenAI](https://platform.openai.com/account/api-keys) and save it in `supabase/functions/.env`.
 
     ```bash
@@ -1326,6 +1338,21 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     ```
+
+    <details>
+    <summary><i>Note: Ollama support</i></summary>
+    ```tsx
+    const openai = new OpenAI({
+      baseURL: "http://host.docker.internal:11434/v1/",
+      apiKey: "ollama",
+    });
+    ```
+    We assume here that you're running `ollama serve` locally
+    with the default port `:11434`.
+    For the Deno edge functions to be able to reach Ollama,
+    we specify `host.docker.internal` instead of `localhost` for
+    the host. More details [here](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach).
+    </details>
 
 1.  Since our frontend is served at a different domain origin than our Edge Function, we must handle cross origin resource sharing (CORS).
 
@@ -1468,6 +1495,20 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     `OpenAIStream` and `StreamingTextResponse` are convenience helpers from Vercel's `ai` package that translate OpenAI's response stream into a format that `useChat()` understands on the frontend.
 
     _Note: we must also return CORS headers here (or anywhere else we send a response)._
+
+    <details>
+    <summary><i>Note: Ollama support</i></summary>
+    Change the model to a model you're serving locally, for example:
+
+    ```diff
+    -     model: 'gpt-3.5-turbo-0613',
+    +     model: 'dolphin-mistral',
+    ```
+
+    Also, Ollama supports CORS by default from localhost.
+    If you were calling your Ollama model from a remote host,
+    you would need to allow those origins specifically as per [these docs](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama).
+    </details>
 
 1.  If you're developing directly on the cloud, set your `OPENAI_API_KEY` secret in the cloud:
 
