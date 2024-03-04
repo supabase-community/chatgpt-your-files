@@ -460,9 +460,8 @@ Let's create a `documents` and `document_sections` table to store our processed 
     ```
 
     _Note: Since the video was published, `on delete cascade` was
-    added here so that the lifecycle of `document_sections` is tied
-    to their respective document. We leave the lifecycle of the
-    objects in storage as an exercise to the reader._
+    added as a new migration so that the lifecycle of `document_sections`
+    is tied to their respective document._
 
 1.  Add HNSW index.
 
