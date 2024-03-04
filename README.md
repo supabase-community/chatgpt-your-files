@@ -1534,7 +1534,6 @@ However since making this tutorial, many new LLM providers exist, such as:
     +     model: 'dolphin-mistral',
     ```
 
-    Also, Ollama supports CORS by default from localhost.
     If you were calling your Ollama model from a remote host,
     you would need to allow those origins specifically as per [these docs](https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama).
     </details>
