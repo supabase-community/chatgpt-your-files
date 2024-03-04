@@ -333,7 +333,7 @@ Next let's update `./app/files/page.tsx` to support file upload.
 
     ```tsx
     await supabase.storage
-      .from('files')
+      .from("files")
       .upload(`${crypto.randomUUID()}/${selectedFile.name}`, selectedFile);
     ```
 
@@ -462,6 +462,15 @@ Let's create a `documents` and `document_sections` table to store our processed 
     _Note: Since the video was published, `on delete cascade` was
     added as a new migration so that the lifecycle of `document_sections`
     is tied to their respective document._
+
+    ```sql
+    alter table document_sections
+    drop constraint document_sections_document_id_fkey,
+    add constraint document_sections_document_id_fkey
+      foreign key (document_id)
+      references documents(id)
+      on delete cascade;
+    ```
 
 1.  Add HNSW index.
 
@@ -655,22 +664,22 @@ Let's create a `documents` and `document_sections` table to store our processed 
 1.  In `process/index.ts`, first grab the Supabase environment variables.
 
     ```tsx
-    import { createClient } from '@supabase/supabase-js';
-    import { processMarkdown } from '../_lib/markdown-parser.ts';
+    import { createClient } from "@supabase/supabase-js";
+    import { processMarkdown } from "../_lib/markdown-parser.ts";
 
     // These are automatically injected
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     Deno.serve(async (req) => {
       if (!supabaseUrl || !supabaseAnonKey) {
         return new Response(
           JSON.stringify({
-            error: 'Missing environment variables.',
+            error: "Missing environment variables.",
           }),
           {
             status: 500,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
           }
         );
       }
@@ -684,14 +693,14 @@ Let's create a `documents` and `document_sections` table to store our processed 
 1.  Create Supabase client and configure it to inherit the original user’s permissions via the authorization header. This way we can continue to take advantage of our RLS policies.
 
     ```tsx
-    const authorization = req.headers.get('Authorization');
+    const authorization = req.headers.get("Authorization");
 
     if (!authorization) {
       return new Response(
         JSON.stringify({ error: `No authorization header passed` }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -714,17 +723,17 @@ Let's create a `documents` and `document_sections` table to store our processed 
     const { document_id } = await req.json();
 
     const { data: document } = await supabase
-      .from('documents_with_storage_path')
+      .from("documents_with_storage_path")
       .select()
-      .eq('id', document_id)
+      .eq("id", document_id)
       .single();
 
     if (!document?.storage_object_path) {
       return new Response(
-        JSON.stringify({ error: 'Failed to find uploaded document' }),
+        JSON.stringify({ error: "Failed to find uploaded document" }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -734,15 +743,15 @@ Let's create a `documents` and `document_sections` table to store our processed 
 
     ```tsx
     const { data: file } = await supabase.storage
-      .from('files')
+      .from("files")
       .download(document.storage_object_path);
 
     if (!file) {
       return new Response(
-        JSON.stringify({ error: 'Failed to download storage object' }),
+        JSON.stringify({ error: "Failed to download storage object" }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -757,7 +766,7 @@ Let's create a `documents` and `document_sections` table to store our processed 
     ```tsx
     const processedMd = processMarkdown(fileContents);
 
-    const { error } = await supabase.from('document_sections').insert(
+    const { error } = await supabase.from("document_sections").insert(
       processedMd.sections.map(({ content }) => ({
         document_id,
         content,
@@ -767,10 +776,10 @@ Let's create a `documents` and `document_sections` table to store our processed 
     if (error) {
       console.error(error);
       return new Response(
-        JSON.stringify({ error: 'Failed to save document sections' }),
+        JSON.stringify({ error: "Failed to save document sections" }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -785,7 +794,7 @@ Let's create a `documents` and `document_sections` table to store our processed 
     ```tsx
     return new Response(null, {
       status: 204,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
     ```
 
@@ -810,15 +819,15 @@ Let's update `./app/files/page.tsx` to list out the uploaded documents.
 1.  At the top of the component, fetch documents using the `useQuery` hook:
 
     ```tsx
-    const { data: documents } = useQuery(['files'], async () => {
+    const { data: documents } = useQuery(["files"], async () => {
       const { data, error } = await supabase
-        .from('documents_with_storage_path')
+        .from("documents_with_storage_path")
         .select();
 
       if (error) {
         toast({
-          variant: 'destructive',
-          description: 'Failed to fetch documents',
+          variant: "destructive",
+          description: "Failed to fetch documents",
         });
         throw error;
       }
@@ -831,13 +840,13 @@ Let's update `./app/files/page.tsx` to list out the uploaded documents.
 
     ```tsx
     const { data, error } = await supabase.storage
-      .from('files')
+      .from("files")
       .createSignedUrl(document.storage_object_path, 60);
 
     if (error) {
       toast({
-        variant: 'destructive',
-        description: 'Failed to download file. Please try again.',
+        variant: "destructive",
+        description: "Failed to download file. Please try again.",
       });
       return;
     }
@@ -952,8 +961,8 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
     tutorial, we can `supabase db reset`. In a more production
     setting, some potential options (although beyond the scope of this tutorial) are:
 
-      * Add another function that can be triggered manually which checks for `document_sections` with missing embeddings and invokes the `/embed` edge function for them.
-      * Create a [scheduled function](https://supabase.com/docs/guides/functions/schedule-functions) that periodically checks for `document_sections` with missing embeddings and re-generates them. We would likely need to add a locking mechanism (ie. via another column) to prevent the scheduled function from conflicting with the normal `embed` trigger.
+    - Add another function that can be triggered manually which checks for `document_sections` with missing embeddings and invokes the `/embed` edge function for them.
+    - Create a [scheduled function](https://supabase.com/docs/guides/functions/schedule-functions) that periodically checks for `document_sections` with missing embeddings and re-generates them. We would likely need to add a locking mechanism (ie. via another column) to prevent the scheduled function from conflicting with the normal `embed` trigger.
     </details>
 
 1.  Apply the migration to our local database.
@@ -979,16 +988,16 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 1.  In `embed/index.ts`, create an embedding pipeline using Transformers.js.
 
     ```tsx
-    import { createClient } from '@supabase/supabase-js';
-    import { env, pipeline } from '@xenova/transformers';
+    import { createClient } from "@supabase/supabase-js";
+    import { env, pipeline } from "@xenova/transformers";
 
     // Configuration for Deno runtime
     env.useBrowserCache = false;
     env.allowLocalModels = false;
 
     const generateEmbedding = await pipeline(
-      'feature-extraction',
-      'Supabase/gte-small'
+      "feature-extraction",
+      "Supabase/gte-small"
     );
     ```
 
@@ -1003,18 +1012,18 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 
     ```tsx
     // These are automatically injected
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     Deno.serve(async (req) => {
       if (!supabaseUrl || !supabaseAnonKey) {
         return new Response(
           JSON.stringify({
-            error: 'Missing environment variables.',
+            error: "Missing environment variables.",
           }),
           {
             status: 500,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { "Content-Type": "application/json" },
           }
         );
       }
@@ -1024,14 +1033,14 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 1.  Create a Supabase client and configure to inherit the user’s permissions.
 
     ```tsx
-    const authorization = req.headers.get('Authorization');
+    const authorization = req.headers.get("Authorization");
 
     if (!authorization) {
       return new Response(
         JSON.stringify({ error: `No authorization header passed` }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -1055,14 +1064,14 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 
     const { data: rows, error: selectError } = await supabase
       .from(table)
-      .select(`id, ${contentColumn}` as '*')
-      .in('id', ids)
+      .select(`id, ${contentColumn}` as "*")
+      .in("id", ids)
       .is(embeddingColumn, null);
 
     if (selectError) {
       return new Response(JSON.stringify({ error: selectError }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
     ```
@@ -1079,7 +1088,7 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
       }
 
       const output = await generateEmbedding(content, {
-        pooling: 'mean',
+        pooling: "mean",
         normalize: true,
       });
 
@@ -1090,7 +1099,7 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
         .update({
           [embeddingColumn]: embedding,
         })
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) {
         console.error(
@@ -1114,7 +1123,7 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
     ```tsx
     return new Response(null, {
       status: 204,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
     ```
 
@@ -1172,9 +1181,9 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 1.  Import dependencies
 
     ```tsx
-    import { usePipeline } from '@/lib/hooks/use-pipeline';
-    import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-    import { useChat } from 'ai/react';
+    import { usePipeline } from "@/lib/hooks/use-pipeline";
+    import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+    import { useChat } from "ai/react";
     ```
 
     _Note: `usePipeline()` was pre-built into this repository for convenience. It uses Web Workers to asynchronously generate embeddings in another thread. We'll be releasing this hook and more into a dedicated NPM package shortly._
@@ -1189,8 +1198,8 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
     ```tsx
     const generateEmbedding = usePipeline(
-      'feature-extraction',
-      'Supabase/gte-small'
+      "feature-extraction",
+      "Supabase/gte-small"
     );
     ```
 
@@ -1229,11 +1238,11 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
     ```tsx
     if (!generateEmbedding) {
-      throw new Error('Unable to generate embeddings');
+      throw new Error("Unable to generate embeddings");
     }
 
     const output = await generateEmbedding(input, {
-      pooling: 'mean',
+      pooling: "mean",
       normalize: true,
     });
 
@@ -1319,15 +1328,15 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 #### Create `chat` Edge Function
 
 _Note: In the following steps, we show how to integrate with the
- models provided by OpenAI. There are alternatives though.
+models provided by OpenAI. There are alternatives though.
 Whichever provider you choose, you can reuse the provided code
 as long as the provider offers an OpenAI-compatible API.
-Such providers are [together.ai](https://docs.together.ai/docs/openai-api-compatibility#nodejs), 
-[fireworks.ai](https://readme.fireworks.ai/docs/openai-compatibility), 
-[endpoints.anyscale.com](https://docs.endpoints.anyscale.com/examples/work-with-openai/) 
-or a local model served with [Ollama](https://github.com/ollama/ollama/blob/main/docs/openai.md#openai-javascript-library). 
+Such providers are [together.ai](https://docs.together.ai/docs/openai-api-compatibility#nodejs),
+[fireworks.ai](https://readme.fireworks.ai/docs/openai-compatibility),
+[endpoints.anyscale.com](https://docs.endpoints.anyscale.com/examples/work-with-openai/)
+or a local model served with [Ollama](https://github.com/ollama/ollama/blob/main/docs/openai.md#openai-javascript-library).
 You can find more providers [here](https://sdk.vercel.ai/docs/guides).
-We will add the code for Ollama using Notes, 
+We will add the code for Ollama using Notes,
 and we leave the rest as an exercise for the reader._
 
 1.  First generate an API key from [OpenAI](https://platform.openai.com/account/api-keys) and save it in `supabase/functions/.env`.
@@ -1347,18 +1356,18 @@ and we leave the rest as an exercise for the reader._
 1.  Load the OpenAI and Supabase keys.
 
     ```tsx
-    import { createClient } from '@supabase/supabase-js';
-    import { OpenAIStream, StreamingTextResponse } from 'ai';
-    import { codeBlock } from 'common-tags';
-    import OpenAI from 'openai';
+    import { createClient } from "@supabase/supabase-js";
+    import { OpenAIStream, StreamingTextResponse } from "ai";
+    import { codeBlock } from "common-tags";
+    import OpenAI from "openai";
 
     const openai = new OpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
+      apiKey: Deno.env.get("OPENAI_API_KEY"),
     });
 
     // These are automatically injected
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     ```
 
     <details>
@@ -1380,15 +1389,15 @@ and we leave the rest as an exercise for the reader._
 
     ```tsx
     export const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers':
-        'authorization, x-client-info, apikey, content-type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers":
+        "authorization, x-client-info, apikey, content-type",
     };
 
     Deno.serve(async (req) => {
       // Handle CORS
-      if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders });
+      if (req.method === "OPTIONS") {
+        return new Response("ok", { headers: corsHeaders });
       }
     });
     ```
@@ -1401,23 +1410,23 @@ and we leave the rest as an exercise for the reader._
     if (!supabaseUrl || !supabaseAnonKey) {
       return new Response(
         JSON.stringify({
-          error: 'Missing environment variables.',
+          error: "Missing environment variables.",
         }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
-    const authorization = req.headers.get('Authorization');
+    const authorization = req.headers.get("Authorization");
 
     if (!authorization) {
       return new Response(
         JSON.stringify({ error: `No authorization header passed` }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -1440,11 +1449,11 @@ and we leave the rest as an exercise for the reader._
     const { chatId, message, messages, embedding } = await req.json();
 
     const { data: documents, error: matchError } = await supabase
-      .rpc('match_document_sections', {
+      .rpc("match_document_sections", {
         embedding,
         match_threshold: 0.8,
       })
-      .select('content')
+      .select("content")
       .limit(5);
 
     if (matchError) {
@@ -1452,11 +1461,11 @@ and we leave the rest as an exercise for the reader._
 
       return new Response(
         JSON.stringify({
-          error: 'There was an error reading your documents, please try again.',
+          error: "There was an error reading your documents, please try again.",
         }),
         {
           status: 500,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -1467,13 +1476,13 @@ and we leave the rest as an exercise for the reader._
     ```tsx
     const injectedDocs =
       documents && documents.length > 0
-        ? documents.map(({ content }) => content).join('\n\n')
-        : 'No documents found';
+        ? documents.map(({ content }) => content).join("\n\n")
+        : "No documents found";
 
     const completionMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
       [
         {
-          role: 'user',
+          role: "user",
           content: codeBlock`
               You're an AI assistant who answers questions about documents.
     
@@ -1503,7 +1512,7 @@ and we leave the rest as an exercise for the reader._
 
     ```tsx
     const completionStream = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo-0613',
+      model: "gpt-3.5-turbo-0613",
       messages: completionMessages,
       max_tokens: 1024,
       temperature: 0,
@@ -1589,13 +1598,13 @@ The Supabase CLI comes with a built-in command to generate TypeScript types base
    1. In React
 
       ```tsx
-      import { Database } from '@/supabase/functions/_lib/database';
+      import { Database } from "@/supabase/functions/_lib/database";
 
       const supabase = createClientComponentClient<Database>();
       ```
 
       ```tsx
-      import { Database } from '@/supabase/functions/_lib/database';
+      import { Database } from "@/supabase/functions/_lib/database";
 
       const supabase = createServerComponentClient<Database>();
       ```
@@ -1615,8 +1624,8 @@ The Supabase CLI comes with a built-in command to generate TypeScript types base
       ```tsx
       if (!document.storage_object_path) {
         toast({
-          variant: 'destructive',
-          description: 'Failed to download file, please try again.',
+          variant: "destructive",
+          description: "Failed to download file, please try again.",
         });
         return;
       }
