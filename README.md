@@ -1328,14 +1328,15 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
 #### Create `chat` Edge Function
 
-Note: In this tutorial we use models provided by OpenAI to implement the chat logic.
+**Note:** In this tutorial we use models provided by OpenAI to implement the chat logic.
 However since making this tutorial, many new LLM providers exist, such as:
 
 - [together.ai](https://docs.together.ai/docs/openai-api-compatibility#nodejs)
 - [fireworks.ai](https://readme.fireworks.ai/docs/openai-compatibility)
 - [endpoints.anyscale.com](https://docs.endpoints.anyscale.com/examples/work-with-openai/)
 - [local models served with Ollama](https://github.com/ollama/ollama/blob/main/docs/openai.md#openai-javascript-library)
-  Whichever provider you choose, you can reuse the code below (that uses the OpenAI lib) as long as they offer an OpenAI-compatible API _(all of providers listed above do)_. We'll discuss how to do this in each step using Ollama, but the same logic applies to the other providers.
+
+Whichever provider you choose, you can reuse the code below (that uses the OpenAI lib) as long as they offer an OpenAI-compatible API _(all of providers listed above do)_. We'll discuss how to do this in each step using Ollama, but the same logic applies to the other providers.
 
 1.  First generate an API key from [OpenAI](https://platform.openai.com/account/api-keys) and save it in `supabase/functions/.env`.
 
