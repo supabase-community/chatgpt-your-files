@@ -459,6 +459,19 @@ Let's create a `documents` and `document_sections` table to store our processed 
     );
     ```
 
+    _Note: Since the video was published, `on delete cascade` was
+    added as a new migration so that the lifecycle of `document_sections`
+    is tied to their respective document._
+
+    ```sql
+    alter table document_sections
+    drop constraint document_sections_document_id_fkey,
+    add constraint document_sections_document_id_fkey
+      foreign key (document_id)
+      references documents(id)
+      on delete cascade;
+    ```
+
 1.  Add HNSW index.
 
     Unlike IVFFlat indexes, HNSW indexes can be create immediately on an empty table.
@@ -941,6 +954,17 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 
     Feel free to adjust these according to your needs. A larger batch size will require a longer timeout per request, since each invocation will have more embeddings to generate. A smaller batch size can use a lower timeout.
 
+    <details>
+    <summary><i>Note: Lifecycle of triggered edge functions</i></summary>
+    If the triggered edge function fails, you will end up with
+    document sections missing embeddings. During development,
+    we can run `supabase db reset` to reset the database. In production,
+    some potential options are:
+
+    - Add another function that can be triggered manually which checks for `document_sections` with missing embeddings and invokes the `/embed` edge function for them.
+    - Create a [scheduled function](https://supabase.com/docs/guides/functions/schedule-functions) that periodically checks for `document_sections` with missing embeddings and re-generates them. We would likely need to add a locking mechanism (ie. via another column) to prevent the scheduled function from conflicting with the normal `embed` trigger.
+    </details>
+
 1.  Apply the migration to our local database.
 
     ```bash
@@ -976,6 +1000,14 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
       'Supabase/gte-small'
     );
     ```
+
+    _Note: Transformers.js requires models to exist in the ONNX format. Specifically
+    the Hugging Face model you specify in the pipeline must have an `.onnx` file
+    under the `./onnx` folder, otherwise you will see the error
+    `Could not locate file [...] xxx.onnx`. Check out
+    [this explanation](https://www.youtube.com/watch?v=QdDoFfkVkcw&t=3825s) for more details.
+    To convert an existing model (eg. PyTorch, Tensorflow, etc) to ONNX, see
+    the [custom usage documentation](https://huggingface.co/docs/transformers.js/en/custom_usage#convert-your-models-to-onnx)._
 
 1.  Just like before, grab the Supabase variables and check for their existence _(type narrowing)_.
 
@@ -1296,6 +1328,16 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
 
 #### Create `chat` Edge Function
 
+**Note:** In this tutorial we use models provided by OpenAI to implement the chat logic.
+However since making this tutorial, many new LLM providers exist, such as:
+
+- [together.ai](https://docs.together.ai/docs/openai-api-compatibility#nodejs)
+- [fireworks.ai](https://readme.fireworks.ai/docs/openai-compatibility)
+- [endpoints.anyscale.com](https://docs.endpoints.anyscale.com/examples/work-with-openai/)
+- [local models served with Ollama](https://github.com/ollama/ollama/blob/main/docs/openai.md#openai-javascript-library)
+
+Whichever provider you choose, you can reuse the code below (that uses the OpenAI lib) as long as they offer an OpenAI-compatible API _(all of providers listed above do)_. We'll discuss how to do this in each step using Ollama, but the same logic applies to the other providers.
+
 1.  First generate an API key from [OpenAI](https://platform.openai.com/account/api-keys) and save it in `supabase/functions/.env`.
 
     ```bash
@@ -1326,6 +1368,26 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     ```
+
+    <details>
+    <summary><i>Note: Ollama support</i></summary>
+
+    For Ollama (and other OpenAI-compatible providers), adjust the `baseURL` and `apiKey` when instantiating `openai`:
+
+    ```tsx
+    const openai = new OpenAI({
+      baseURL: 'http://host.docker.internal:11434/v1/',
+      apiKey: 'ollama',
+    });
+    ```
+
+    We assume here that you're running `ollama serve` locally
+    with the default port `:11434`.
+    Since local edge functions run inside a Docker container,
+    we specify `host.docker.internal` instead of `localhost`
+    in order to reach Ollama running on your host.
+
+    </details>
 
 1.  Since our frontend is served at a different domain origin than our Edge Function, we must handle cross origin resource sharing (CORS).
 
@@ -1468,6 +1530,17 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     `OpenAIStream` and `StreamingTextResponse` are convenience helpers from Vercel's `ai` package that translate OpenAI's response stream into a format that `useChat()` understands on the frontend.
 
     _Note: we must also return CORS headers here (or anywhere else we send a response)._
+
+    <details>
+    <summary><i>Note: Ollama support</i></summary>
+    Change the model to a model you're serving locally, for example:
+
+    ```diff
+    -     model: 'gpt-3.5-turbo-0613',
+    +     model: 'dolphin-mistral',
+    ```
+
+    </details>
 
 1.  If you're developing directly on the cloud, set your `OPENAI_API_KEY` secret in the cloud:
 
