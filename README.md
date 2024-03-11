@@ -1371,17 +1371,22 @@ Whichever provider you choose, you can reuse the code below (that uses the OpenA
 
     <details>
     <summary><i>Note: Ollama support</i></summary>
+
+    For Ollama (and other OpenAI-compatible providers), adjust the `baseURL` and `apiKey` when instantiating `openai`:
+
     ```tsx
     const openai = new OpenAI({
-      baseURL: "http://host.docker.internal:11434/v1/",
-      apiKey: "ollama",
+      baseURL: 'http://host.docker.internal:11434/v1/',
+      apiKey: 'ollama',
     });
     ```
+
     We assume here that you're running `ollama serve` locally
     with the default port `:11434`.
-    For the Deno edge functions to be able to reach Ollama,
-    we specify `host.docker.internal` instead of `localhost` for
-    the host. More details [here](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach).
+    Since local edge functions run inside a Docker container,
+    we specify `host.docker.internal` instead of `localhost`
+    in order to reach Ollama running on your host.
+
     </details>
 
 1.  Since our frontend is served at a different domain origin than our Edge Function, we must handle cross origin resource sharing (CORS).
