@@ -2,7 +2,6 @@
   "imports": {
     "@std/": "https://deno.land/std@0.168.0/",
 
-    "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.21.0",
     "openai": "https://esm.sh/openai@4.10.0",
     "common-tags": "https://esm.sh/common-tags@1.8.2",

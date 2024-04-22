@@ -146,7 +146,6 @@ Refer to this step if you want to learn about the additions added on top of `cre
       "imports": {
         "@std/": "https://deno.land/std@0.168.0/",
 
-        "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1",
         "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.21.0",
         "openai": "https://esm.sh/openai@4.10.0",
         "common-tags": "https://esm.sh/common-tags@1.8.2",
@@ -642,7 +641,6 @@ Let's create a `documents` and `document_sections` table to store our processed 
       "imports": {
         "@std/": "https://deno.land/std@0.168.0/",
 
-        "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.1",
         "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.21.0",
         "openai": "https://esm.sh/openai@4.10.0",
         "common-tags": "https://esm.sh/common-tags@1.8.2",
@@ -985,29 +983,18 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
     npx supabase functions new embed
     ```
 
-1.  In `embed/index.ts`, create an embedding pipeline using Transformers.js.
+1.  In `embed/index.ts`, create an inference session using Supabase's AI inference engine.
 
     ```tsx
+    // Setup type definitions for built-in Supabase Runtime APIs
+    /// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+
     import { createClient } from '@supabase/supabase-js';
-    import { env, pipeline } from '@xenova/transformers';
 
-    // Configuration for Deno runtime
-    env.useBrowserCache = false;
-    env.allowLocalModels = false;
-
-    const generateEmbedding = await pipeline(
-      'feature-extraction',
-      'Supabase/gte-small'
-    );
+    const model = new Supabase.ai.Session('gte-small');
     ```
 
-    _Note: Transformers.js requires models to exist in the ONNX format. Specifically
-    the Hugging Face model you specify in the pipeline must have an `.onnx` file
-    under the `./onnx` folder, otherwise you will see the error
-    `Could not locate file [...] xxx.onnx`. Check out
-    [this explanation](https://www.youtube.com/watch?v=QdDoFfkVkcw&t=3825s) for more details.
-    To convert an existing model (eg. PyTorch, Tensorflow, etc) to ONNX, see
-    the [custom usage documentation](https://huggingface.co/docs/transformers.js/en/custom_usage#convert-your-models-to-onnx)._
+    _Note: The original code from the video tutorial used Transformers.js to perform inference in the Edge Function. We've since released [Supabase.ai APIs](https://supabase.com/docs/guides/functions/ai-models) that can perform inference natively within the runtime itself (vs. WASM) which is faster and uses less CPU time._
 
 1.  Just like before, grab the Supabase variables and check for their existence _(type narrowing)_.
 
@@ -1079,7 +1066,7 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 
 1.  Generate an embedding for each piece of text and update the respective rows.
 
-    ```tsx
+    ```ts
     for (const row of rows) {
       const { id, [contentColumn]: content } = row;
 
@@ -1088,12 +1075,12 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
         continue;
       }
 
-      const output = await generateEmbedding(content, {
-        pooling: 'mean',
+      const output = (await model.run(content, {
+        mean_pool: true,
         normalize: true,
-      });
+      })) as number[];
 
-      const embedding = JSON.stringify(Array.from(output.data));
+      const embedding = JSON.stringify(output);
 
       const { error } = await supabase
         .from(table)
@@ -1166,6 +1153,8 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     npm i @xenova/transformers ai
     ```
 
+    We'll use [Transformers.js](https://github.com/xenova/transformers.js) to perform inference directly in the browser.
+
 1.  Configure `next.config.js` to support Transformers.js
 
     ```jsx
@@ -1187,7 +1176,7 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     import { useChat } from 'ai/react';
     ```
 
-    _Note: `usePipeline()` was pre-built into this repository for convenience. It uses Web Workers to asynchronously generate embeddings in another thread. We'll be releasing this hook and more into a dedicated NPM package shortly._
+    _Note: `usePipeline()` was pre-built into this repository for convenience. It uses Web Workers to asynchronously generate embeddings in another thread using Transformers.js._
 
 1.  Create a Supabase client in `chat/page.tsx`.
 
@@ -1205,6 +1194,14 @@ Finally, let's implement the chat functionality. For this workshop, we're going 
     ```
 
     _Note: it's important that the embedding model you set here matches the model used in the Edge Function, otherwise your future matching logic will be meaningless._
+
+    _Transformers.js requires models to exist in the ONNX format. Specifically
+    the Hugging Face model you specify in the pipeline must have an `.onnx` file
+    under the `./onnx` folder, otherwise you will see the error
+    `Could not locate file [...] xxx.onnx`. Check out
+    [this explanation](https://www.youtube.com/watch?v=QdDoFfkVkcw&t=3825s) for more details.
+    To convert an existing model (eg. PyTorch, Tensorflow, etc) to ONNX, see
+    the [custom usage documentation](https://huggingface.co/docs/transformers.js/en/custom_usage#convert-your-models-to-onnx)._
 
 1.  Manage chat messages and state with `useChat()`.
 

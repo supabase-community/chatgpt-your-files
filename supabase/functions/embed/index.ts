@@ -1,15 +1,10 @@
+// Setup type definitions for built-in Supabase Runtime APIs
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+
 import { createClient } from '@supabase/supabase-js';
-import { env, pipeline } from '@xenova/transformers';
 import { Database } from '../_lib/database.ts';
 
-// Configuration for Deno runtime
-env.useBrowserCache = false;
-env.allowLocalModels = false;
-
-const generateEmbedding = await pipeline(
-  'feature-extraction',
-  'Supabase/gte-small'
-);
+const model = new Supabase.ai.Session('gte-small');
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
@@ -73,12 +68,12 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    const output = await generateEmbedding(content, {
-      pooling: 'mean',
+    const output = (await model.run(content, {
+      mean_pool: true,
       normalize: true,
-    });
+    })) as number[];
 
-    const embedding = JSON.stringify(Array.from(output.data));
+    const embedding = JSON.stringify(output);
 
     const { error } = await supabase
       .from(table)
