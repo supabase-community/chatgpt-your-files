@@ -986,6 +986,9 @@ Now let's add logic to generate embeddings automatically anytime new rows are ad
 1.  In `embed/index.ts`, create an inference session using Supabase's AI inference engine.
 
     ```tsx
+    // Setup type definitions for built-in Supabase Runtime APIs
+    /// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
+
     import { createClient } from '@supabase/supabase-js';
 
     const model = new Supabase.ai.Session('gte-small');

@@ -1,4 +1,5 @@
-/// <reference types="https://esm.sh/v135/@supabase/functions-js@2.3.1/src/edge-runtime.d.ts" />
+// Setup type definitions for built-in Supabase Runtime APIs
+/// <reference types="https://esm.sh/@supabase/functions-js/src/edge-runtime.d.ts" />
 
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../_lib/database.ts';
