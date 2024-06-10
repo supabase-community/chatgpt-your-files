@@ -1513,7 +1513,7 @@ Whichever provider you choose, you can reuse the code below (that uses the OpenA
 
     ```tsx
     const completionStream = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo-0613',
+      model: 'gpt-3.5-turbo-0125',
       messages: completionMessages,
       max_tokens: 1024,
       temperature: 0,
@@ -1533,7 +1533,7 @@ Whichever provider you choose, you can reuse the code below (that uses the OpenA
     Change the model to a model you're serving locally, for example:
 
     ```diff
-    -     model: 'gpt-3.5-turbo-0613',
+    -     model: 'gpt-3.5-turbo-0125',
     +     model: 'dolphin-mistral',
     ```
 
