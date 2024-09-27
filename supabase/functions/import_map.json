@@ -11,6 +11,7 @@
     "mdast-util-to-string": "https://esm.sh/v132/mdast-util-to-string@4.0.0",
     "unist-builder": "https://esm.sh/v132/unist-builder@4.0.0",
     "mdast": "https://esm.sh/v132/@types/mdast@4.0.0/index.d.ts",
+    "papaparse": "https://esm.sh/v132/papaparse@5.4.1",
 
     "https://esm.sh/v132/decode-named-character-reference@1.0.2/esnext/decode-named-character-reference.mjs": "https://esm.sh/decode-named-character-reference@1.0.2?target=deno"
   }

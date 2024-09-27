@@ -18,13 +18,34 @@ as
     on storage.objects.id = documents.storage_object_id;
 
 create table document_sections (
-  id bigint primary key generated always as identity,
+  id text primary key as identity,
   document_id bigint not null references documents (id),
   content text not null,
-  embedding vector (384)
+  content_name_description text not null,
+  name text not null,
+  description text not null,
+  level int not null,
+  occupation_group int not null,
+  occupation_group_name text not null,
+  occupation_group_description text not null,
+  career_area int not null,
+  career_area_name text not null,
+  career_area_description text not null,
+  requirement_level int not null,
+  requirement_level_description text not null,
+  license_typically_required bool,
+  certification_typically_required bool,
+  requires_specialized_training bool,
+  specialized_training_description bool,
+  name_ca text not null,
+  name_gb text not null,
+  version text not null,
+  embedding vector (384),
+  embedding_name_description vector (384)
 );
 
 create index on document_sections using hnsw (embedding vector_ip_ops);
+create index on document_sections using hnsw (embedding_name_description vector_ip_ops);
 
 alter table documents enable row level security;
 alter table document_sections enable row level security;
