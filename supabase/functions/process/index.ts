@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
     dynamicTyping: true,
     transformHeader: (header: string) => header.toLowerCase(),
   });
+  console.log({ processedCSV });
   type LOT_CSV_ROW = {
     id: string;
     document_id: number;
@@ -104,11 +105,11 @@ Deno.serve(async (req) => {
     embedding_name_description: null;
   };
   const { error } = await supabase.from("document_sections").insert(
-    processedCSV.map((row: LOT_CSV_ROW) => ({
+    processedCSV.data.map((row: LOT_CSV_ROW) => ({
       document_id,
       lot_id: row.id,
       content: Object.values(row).join("\n"),
-      content_name_description: row.name + row.description,
+      content_name_description: `name: ${row.name}; description: ${row.description}`,
       name: row.name,
       description: row.description,
       level: row.level,
@@ -141,7 +142,9 @@ Deno.serve(async (req) => {
     );
   }
 
-  console.log(`Saved ${processedCSV.length} rows for file '${document.name}'`);
+  console.log(
+    `Saved ${processedCSV.data.length} rows for file '${document.name}'`,
+  );
 
   return new Response(null, {
     status: 204,
