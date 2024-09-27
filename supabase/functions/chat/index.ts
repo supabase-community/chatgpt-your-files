@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "../_lib/database.ts";
 
+const model = new Supabase.ai.Session("gte-small");
+
 // These are automatically injected
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -30,20 +32,11 @@ Deno.serve(async (req) => {
 
   const authorization = req.headers.get("Authorization");
 
-  if (!authorization) {
-    return new Response(
-      JSON.stringify({ error: `No authorization header passed` }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
 
   const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: {
-        authorization,
+        authorization: authorization??,
       },
     },
     auth: {
@@ -51,7 +44,14 @@ Deno.serve(async (req) => {
     },
   });
 
-  const { messages, embedding } = await req.json();
+  const { messages } = await req.json();
+  console.log({ messages });
+  const output = (await model.run(messages[messages.length - 1], {
+    mean_pool: true,
+    normalize: true,
+  })) as number[];
+
+  const embedding = JSON.stringify(output);
 
   const { data: documents, error: matchError } = await supabase
     .rpc("match_document_sections", {
