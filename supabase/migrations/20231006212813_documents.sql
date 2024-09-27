@@ -48,6 +48,7 @@ create table document_sections (
 
 create index on document_sections using hnsw (embedding vector_ip_ops);
 create index on document_sections using hnsw (embedding_name_description vector_ip_ops);
+create index on document_sections using hnsw (embedding_name vector_ip_ops);
 
 alter table documents enable row level security;
 -- alter table document_sections disable row level security;
