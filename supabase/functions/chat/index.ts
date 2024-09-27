@@ -32,12 +32,11 @@ Deno.serve(async (req) => {
 
   const authorization = req.headers.get("Authorization");
 
+  const headers = authorization ? { authorization } : undefined;
 
   const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     global: {
-      headers: {
-        authorization: authorization??,
-      },
+      headers,
     },
     auth: {
       persistSession: false,
