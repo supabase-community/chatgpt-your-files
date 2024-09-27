@@ -43,13 +43,14 @@ create table document_sections (
   version text,
   embedding vector (384),
   embedding_name_description vector (384)
+  embedding_name vector (384)
 );
 
 create index on document_sections using hnsw (embedding vector_ip_ops);
 create index on document_sections using hnsw (embedding_name_description vector_ip_ops);
 
 alter table documents enable row level security;
-alter table document_sections enable row level security;
+-- alter table document_sections disable row level security;
 
 create policy "Users can insert documents"
 on documents for insert to authenticated with check (

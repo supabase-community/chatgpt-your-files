@@ -32,31 +32,26 @@ Deno.serve(async (req) => {
 
   const authorization = req.headers.get("Authorization");
 
-  const headers = authorization ? { authorization } : undefined;
-
-  const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers,
-    },
-    auth: {
-      persistSession: false,
-    },
-  });
-
+  const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+  console.log("connected");
   const { messages } = await req.json();
-  console.log({ messages });
-  const output = (await model.run(messages[messages.length - 1], {
+  console.log({ messages, model });
+  const msg = messages[messages.length - 1].content;
+  const output = (await model.run(msg, {
     mean_pool: true,
     normalize: true,
   })) as number[];
 
   const embedding = JSON.stringify(output);
 
+  console.log({ msg, model, embedding });
+
   const { data: documents, error: matchError } = await supabase
     .rpc("match_document_sections", {
       embedding,
-      match_threshold: 0.8,
+      match_threshold: 0.9,
     })
+    .select("lot_id, name")
     .limit(5);
 
   const { data: documents_name_desc, error: matchError_name_desc } =
@@ -65,10 +60,19 @@ Deno.serve(async (req) => {
         embedding,
         match_threshold: 0.8,
       })
+      .select("lot_id, name")
       .limit(5);
 
-  if (matchError || matchError_name_desc) {
-    console.error(matchError);
+  const { data: documents_name, error: matchError_name } = await supabase
+    .rpc("match_document_sections_name", {
+      embedding,
+      match_threshold: 0.8,
+    })
+    .select("lot_id, name")
+    .limit(5);
+
+  if (matchError || matchError_name_desc || matchError_name) {
+    console.error(matchError, matchError_name_desc, matchError_name);
 
     return new Response(
       JSON.stringify({
@@ -81,10 +85,13 @@ Deno.serve(async (req) => {
     );
   }
 
-  console.log({ documents, documents_name_desc });
+  console.log({ documents_name, documents, documents_name_desc });
 
-  return new Response(JSON.stringify({ documents, documents_name_desc }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({ documents_name, documents, documents_name_desc }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
 });

@@ -66,4 +66,8 @@ create trigger embed_document_sections_name_desc
   for each statement
   execute procedure private.embed(content_name_description, embedding_name_description);
 
-
+create trigger embed_document_sections_name
+  after insert on document_sections
+  referencing new table as inserted
+  for each statement
+  execute procedure private.embed(name, embedding_name);
