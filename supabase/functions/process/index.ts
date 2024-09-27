@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import Papa from "papaparse";
 import { Database } from "../_lib/database.ts";
-import { processMarkdown } from "../_lib/markdown-parser.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -107,7 +106,7 @@ Deno.serve(async (req) => {
   const { error } = await supabase.from("document_sections").insert(
     processedCSV.map((row: LOT_CSV_ROW) => ({
       document_id,
-      id: row.id,
+      lot_id: row.id,
       content: Object.values(row).join("\n"),
       content_name_description: row.name + row.description,
       name: row.name,

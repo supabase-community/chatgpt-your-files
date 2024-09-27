@@ -18,7 +18,8 @@ as
     on storage.objects.id = documents.storage_object_id;
 
 create table document_sections (
-  id text primary key,
+  id bigint primary key generated always as identity,
+  lot_id text not null,
   document_id bigint not null references documents (id),
   content text not null,
   content_name_description text not null,
