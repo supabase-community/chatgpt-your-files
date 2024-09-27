@@ -58,7 +58,6 @@ Deno.serve(async (req) => {
       embedding,
       match_threshold: 0.8,
     })
-    .select("content")
     .limit(5);
 
   const { data: documents_name_desc, error: matchError_name_desc } =
@@ -67,7 +66,6 @@ Deno.serve(async (req) => {
         embedding,
         match_threshold: 0.8,
       })
-      .select("content_name_description")
       .limit(5);
 
   if (matchError || matchError_name_desc) {
@@ -84,21 +82,9 @@ Deno.serve(async (req) => {
     );
   }
 
-  const resultDocs =
-    documents && documents.length > 0
-      ? documents.map(({ content }) => content).join("\n\n")
-      : "No documents found";
+  console.log({ documents, documents_name_desc });
 
-  const resultDocs_name_desc =
-    documents_name_desc && documents_name_desc.length > 0
-      ? documents_name_desc
-          .map(({ content_name_description }) => content_name_description)
-          .join("\n\n")
-      : "No documents found";
-
-  console.log({ resultDocs, resultDocs_name_desc });
-
-  return new Response(JSON.stringify({ resultDocs, resultDocs_name_desc }), {
+  return new Response(JSON.stringify({ documents, documents_name_desc }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
