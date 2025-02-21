@@ -151,10 +151,10 @@ Refer to this step if you want to learn about the additions added on top of `cre
         "common-tags": "https://esm.sh/common-tags@1.8.2",
         "ai": "https://esm.sh/ai@2.2.13",
 
-        "mdast-util-from-markdown": "https://esm.sh/mdast-util-from-markdown@2.0.0",
-        "mdast-util-to-markdown": "https://esm.sh/mdast-util-to-markdown@2.1.0",
-        "mdast-util-to-string": "https://esm.sh/mdast-util-to-string@4.0.0",
-        "unist-builder": "https://esm.sh/unist-builder@4.0.0",
+        "mdast-util-from-markdown": "https://esm.sh/v132/mdast-util-from-markdown@2.0.0",
+        "mdast-util-to-markdown": "https://esm.sh/v132/mdast-util-to-markdown@2.1.0",
+        "mdast-util-to-string": "https://esm.sh/v132/mdast-util-to-string@4.0.0",
+        "unist-builder": "https://esm.sh/v132/unist-builder@4.0.0",
         "mdast": "https://esm.sh/v132/@types/mdast@4.0.0/index.d.ts",
 
         "https://esm.sh/v132/decode-named-character-reference@1.0.2/esnext/decode-named-character-reference.mjs": "https://esm.sh/decode-named-character-reference@1.0.2?target=deno"
