@@ -1648,6 +1648,32 @@ Jump to a previous step:
 5. [Database Types](#step-5---database-types-bonus) (Bonus)
 6. [You're done!](#youre-done)
 
+### Optional AgentPond AI tracing
+
+Apply the latest migrations and set the Edge Function secret
+`AGENTPOND_ENABLED=true` to export OpenInference traces directly to the private
+`agentpond` bucket:
+
+```bash
+npx supabase db push
+npx supabase secrets set AGENTPOND_ENABLED=true
+```
+
+Supabase automatically supplies the server-only project credentials used by
+the exporter. The chat span explicitly uses `recordInputs: true` and
+`recordOutputs: true`, recording the complete document context, chat messages,
+and generated response. This can include personal or confidential content, so
+review access, retention, and consent requirements before opting in. Vercel's
+[AI SDK telemetry documentation](https://ai-sdk.dev/docs/ai-sdk-core/telemetry)
+describes the equivalent full-content capture behavior.
+
+After a chat request, inspect the traces with:
+
+```bash
+npx agentpond sync
+npx agentpond traces list
+```
+
 ## 🚀 Going to prod
 
 If you've been developing the app locally, follow these instructions to deploy your app to a production Supabase project.

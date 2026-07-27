@@ -3,6 +3,7 @@ import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { codeBlock } from 'common-tags';
 import OpenAI from 'openai';
 import { Database } from '../_lib/database.ts';
+import { finishOpenAISpan, startOpenAISpan } from '../_lib/agentpond.ts';
 
 const openai = new OpenAI({
   apiKey: Deno.env.get('OPENAI_API_KEY'),
@@ -115,14 +116,26 @@ Deno.serve(async (req) => {
       ...messages,
     ];
 
-  const completionStream = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo-0125',
-    messages: completionMessages,
-    max_tokens: 1024,
-    temperature: 0,
-    stream: true,
-  });
+  const model = 'gpt-3.5-turbo-0125';
+  const span = startOpenAISpan(completionMessages, model);
 
-  const stream = OpenAIStream(completionStream);
-  return new StreamingTextResponse(stream, { headers: corsHeaders });
+  try {
+    const completionStream = await openai.chat.completions.create({
+      model,
+      messages: completionMessages,
+      max_tokens: 1024,
+      temperature: 0,
+      stream: true,
+    });
+
+    const stream = OpenAIStream(completionStream, {
+      onFinal(completion) {
+        finishOpenAISpan(span, completion);
+      },
+    });
+    return new StreamingTextResponse(stream, { headers: corsHeaders });
+  } catch (error) {
+    finishOpenAISpan(span, undefined, error);
+    throw error;
+  }
 });
